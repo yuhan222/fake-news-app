@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "真假之眼",
+    "slug": "fake-news-app",
+    "extra": {
+      "eas": {
+        "projectId": "ccf072eb-138e-46c3-b086-8c5650c9ff92"
+      }
+    },
+    "android": {
+      "package": "com.mina6116.fakenewsapp"
+    }
+  }
+}
