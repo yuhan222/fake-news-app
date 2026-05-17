@@ -91,7 +91,7 @@ export default function HomeScreen({ navigation }) {
         {/* 標題 */}
         <View style={styles.header}>
           <Text style={styles.eyebrow}>真假辨別訓練</Text>
-          <Text style={styles.title}>真假之眼 👁️</Text>
+          <Text style={styles.title}>真假之眼 </Text>
           <Text style={styles.subtitle}>你能看穿社群中的謊言嗎？</Text>
         </View>
 

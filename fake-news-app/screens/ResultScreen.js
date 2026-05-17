@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle, Ghost, Share2 } from 'lucide-react-native';
+import { AlertCircle, CheckCircle, Ghost, Share2, Tag } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, SafeAreaView, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useQuizContext } from '../QuizContext';
@@ -52,7 +52,6 @@ export default function ResultScreen({ route, navigation }) {
 
           {/* 結果標頭 */}
           <View style={[styles.headerCard, { borderColor: accentBorder, backgroundColor: accentBg }]}>
-            {/* 頂部光線 */}
             <View style={[styles.cardTopLine, { backgroundColor: accentBorder }]} />
 
             <Animated.View style={{ transform: [{ scale: scaleAnim }], alignItems: 'center' }}>
@@ -73,7 +72,7 @@ export default function ResultScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* 真相解析 */}
+          {/* 真相解析（含標籤） */}
           <View style={styles.infoBox}>
             <View style={styles.cardTopLine} />
             <View style={styles.boxHeader}>
@@ -81,6 +80,23 @@ export default function ResultScreen({ route, navigation }) {
               <Text style={styles.boxTitle}>真相解析</Text>
             </View>
             <Text style={styles.infoText}>{questionInfo.explanation || '這則訊息屬於假訊息。'}</Text>
+
+            {/* 標籤區塊（從題目移至此處） */}
+            {questionInfo.tags && questionInfo.tags.length > 0 && (
+              <View style={styles.tagsSection}>
+                <View style={styles.tagsSectionHeader}>
+                  <Tag size={12} color={colors.textTertiary} />
+                  <Text style={styles.tagsSectionLabel}>識別關鍵字</Text>
+                </View>
+                <View style={styles.tags}>
+                  {questionInfo.tags.map(tag => (
+                    <View key={tag} style={styles.tag}>
+                      <Text style={styles.tagText}>#{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
 
           {/* 詐騙者視角 */}
@@ -91,7 +107,23 @@ export default function ResultScreen({ route, navigation }) {
                 <Text style={styles.scammerTitle}>詐騙者視角：他們怎麼騙你的？</Text>
               </View>
               <View style={styles.scammerDivider} />
-              <Text style={styles.scammerText}>{questionInfo.scammerPerspective || '• 利用情緒操控讓你失去理智判斷。'}</Text>
+              {(questionInfo.scammerPerspective || '• 利用情緒操控讓你失去理智判斷。')
+                .split('\n')
+                .map((line, i) => {
+                  const colonIdx = line.indexOf('：');
+                  if (colonIdx === -1) return (
+                    <Text key={i} style={styles.scammerText}>{line}</Text>
+                  );
+                  const bold = line.slice(0, colonIdx + 1);
+                  const rest = line.slice(colonIdx + 1);
+                  return (
+                    <Text key={i} style={[styles.scammerText, { marginBottom: 6 }]}>
+                      <Text style={styles.scammerBold}>{bold}</Text>
+                      {rest}
+                    </Text>
+                  );
+                })
+              }
             </View>
           )}
 
@@ -148,6 +180,27 @@ const styles = StyleSheet.create({
   boxTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
   infoText: { fontSize: 14, lineHeight: 24, color: colors.textSecondary },
 
+  // 標籤區塊樣式
+  tagsSection: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    marginBottom: 10,
+  },
+  tagsSectionLabel: {
+    fontSize: 11, color: colors.textTertiary, fontWeight: '600', letterSpacing: 0.3,
+  },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  tag: {
+    backgroundColor: colors.primaryBg, paddingHorizontal: 11, paddingVertical: 5,
+    borderRadius: radius.full, borderWidth: 1, borderColor: colors.primaryBorder,
+  },
+  tagText: { fontSize: 11, color: colors.primaryLight, fontWeight: '600' },
+
   scammerBox: {
     backgroundColor: colors.dark, padding: spacing.lg,
     borderRadius: radius.lg, marginBottom: spacing.sm,
@@ -157,7 +210,8 @@ const styles = StyleSheet.create({
   scammerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   scammerDivider: { height: 1, backgroundColor: colors.darkBorder, marginBottom: 12 },
   scammerTitle: { fontSize: 13, fontWeight: '700', color: '#F87171' },
-  scammerText: { fontSize: 13, lineHeight: 22, color: '#64748B' },
+  scammerText: { fontSize: 13, lineHeight: 22, color: '#94A3B8' },
+  scammerBold: { fontWeight: '800', color: '#F87171' },
 
   shareBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
