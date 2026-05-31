@@ -1,32 +1,99 @@
-import { ResizeMode, Video } from 'expo-av';
+// screens/QuizScreen.js
+import React, { useRef, useState, useEffect } from 'react';
+import { Animated, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Check, ChevronLeft, Maximize2, Play, X } from 'lucide-react-native';
-import React, { useRef, useState } from 'react';
-import { Animated, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { myQuestions } from '../questions';
+import { ResizeMode, Video } from 'expo-av'; 
+import { ChevronLeft, Maximize2, X, Lightbulb, Play } from 'lucide-react-native';
+import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function QuizScreen({ navigation }) {
+  const { getShuffledQuestions, useHintDeduct, saveChallengeSession, xp } = useQuizContext();
+
+  const [questions, setQuestions] = useState([]); 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOptionKey, setSelectedOptionKey] = useState(null); 
+  const [isAnswered, setIsAnswered] = useState(false); 
+  const [showHint, setShowHint] = useState(false); 
   const [lightboxVisible, setLightboxVisible] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const currentQuestion = myQuestions[currentIndex];
+  
+  const [sessionDetails, setSessionDetails] = useState([]); 
+  const [sessionScore, setSessionScore] = useState(0);
+
+  useEffect(() => {
+    const quizQuestions = getShuffledQuestions(5);
+    setQuestions(quizQuestions);
+  }, []);
+
+  const currentQuestion = questions[currentIndex];
   const videoRef = useRef(null);
-  const trueScale = useRef(new Animated.Value(1)).current;
-  const fakeScale = useRef(new Animated.Value(1)).current;
   const lightboxOpacity = useRef(new Animated.Value(0)).current;
 
-  // Pinch-to-zoom: 用 useRef 儲存 scale 值，直接操作 Animated.Value
   const pinchScaleAnim = useRef(new Animated.Value(1)).current;
   const lastScale = useRef(1);
   const currentPinchScale = useRef(1);
 
-  const makeScaleHandler = (anim) => ({
-    onPressIn: () => Animated.spring(anim, { toValue: 0.94, useNativeDriver: true }).start(),
-    onPressOut: () => Animated.spring(anim, { toValue: 1, friction: 4, useNativeDriver: true }).start(),
-  });
+  if (!currentQuestion) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.textSecondary }}>題庫加載中...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // 🔑 提示點擊事件功能完全綁定修復
+  const handleShowHint = () => {
+    if (showHint) return;
+    if (xp < 15) {
+      Alert.alert('查核點數不足', `觀看提示需要扣除 15 XP，您當前只有 ${xp} XP。`);
+      return;
+    }
+    Alert.alert('解鎖事實查核線索', '觀看提示將扣除 15 XP 經驗值，確定要開啟嗎？', [
+      { text: '取消', style: 'cancel' },
+      { text: '確定扣點', onPress: () => { useHintDeduct(15); setShowHint(true); } }
+    ]);
+  };
+
+  const handleOptionPress = (option) => {
+    if (isAnswered) return;
+    setSelectedOptionKey(option.key);
+    setIsAnswered(true);
+
+    const isCorrect = option.isCorrect;
+    if (isCorrect) setSessionScore(prev => prev + 1);
+
+    setSessionDetails(prev => [
+      ...prev,
+      {
+        questionId: currentQuestion.id,
+        title: currentQuestion.title,
+        isCorrect: isCorrect,
+        tags: currentQuestion.tags
+      }
+    ]);
+  };
+
+  const handleNext = () => {
+    const isLastQuestion = currentIndex === questions.length - 1;
+    if (isLastQuestion) {
+      const finalScore = sessionScore;
+      const finalTotal = questions.length;
+      const finalAccuracy = Math.round((finalScore / finalTotal) * 100);
+      const finalXpGained = finalScore * 20;
+
+      saveChallengeSession(finalScore, finalTotal, sessionDetails);
+      navigation.navigate('Result', { score: finalScore, total: finalTotal, accuracy: finalAccuracy, xpGained: finalXpGained });
+    } else {
+      setCurrentIndex(currentIndex + 1);
+      setSelectedOptionKey(null);
+      setIsAnswered(false);
+      setShowHint(false);
+      setVideoPlaying(false);
+    }
+  };
 
   const openLightbox = () => {
     pinchScaleAnim.setValue(1);
@@ -37,40 +104,27 @@ export default function QuizScreen({ navigation }) {
   };
 
   const closeLightbox = () => {
-    Animated.timing(lightboxOpacity, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
-      setLightboxVisible(false);
-    });
+    Animated.timing(lightboxOpacity, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => { setLightboxVisible(false); });
   };
 
-  // Gesture: pinch 縮放 + tap 關閉，同時運作
-  const pinchGesture = Gesture.Pinch()
-    .onUpdate((e) => {
-      const newScale = Math.max(1, Math.min(5, lastScale.current * e.scale));
-      currentPinchScale.current = newScale;
-      pinchScaleAnim.setValue(newScale);
-    })
-    .onEnd(() => {
-      lastScale.current = currentPinchScale.current;
-    });
+  const pinchGesture = Gesture.Pinch().onUpdate((e) => {
+    const newScale = Math.max(1, Math.min(5, lastScale.current * e.scale));
+    currentPinchScale.current = newScale;
+    pinchScaleAnim.setValue(newScale);
+  }).onEnd(() => { lastScale.current = currentPinchScale.current; });
 
-  const tapGesture = Gesture.Tap()
-    .onEnd(() => {
-      // 只在沒有縮放時點擊才關閉（避免縮放後誤觸關閉）
-      if (lastScale.current <= 1.05) {
-        closeLightbox();
-      }
-    });
-
+  const tapGesture = Gesture.Tap().onEnd(() => { if (lastScale.current <= 1.05) closeLightbox(); });
   const composedGesture = Gesture.Simultaneous(pinchGesture, tapGesture);
+  const progress = (currentIndex + 1) / questions.length;
 
-  const progress = (currentIndex + 1) / myQuestions.length;
-
+  // 🔑 欄位修復：精準對接 questions_db.json 的 mediaUrl 欄位進行圖片/影片動態展示
   const renderMedia = () => {
+    if (!currentQuestion.mediaUrl) return null;
+    
     if (currentQuestion.type === 'image') {
-      const src = typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl;
       return (
         <TouchableOpacity onPress={openLightbox} activeOpacity={0.92} style={styles.mediaWrapper}>
-          <Image source={src} style={styles.media} resizeMode="contain" />
+          <Image source={currentQuestion.mediaUrl} style={styles.media} resizeMode="contain" />
           <View style={styles.expandBadge}>
             <Maximize2 size={12} color="white" />
             <Text style={styles.expandText}>點擊放大</Text>
@@ -79,100 +133,52 @@ export default function QuizScreen({ navigation }) {
       );
     }
     if (currentQuestion.type === 'video') {
-      const src = typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl;
       return (
         <View style={styles.mediaWrapper}>
           <Video
             ref={videoRef}
             style={styles.media}
-            source={src}
+            source={typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl}
             useNativeControls
             resizeMode={ResizeMode.CONTAIN}
-            isLooping
-            onPlaybackStatusUpdate={(status) => {
-              if (status.isLoaded) setVideoPlaying(status.isPlaying);
-            }}
-            onError={(e) => console.error('影片載入失敗：', e)}
+            onPlaybackStatusUpdate={(status) => { if (status.isLoaded) setVideoPlaying(status.isPlaying); }}
           />
-          {/* 只在未播放時顯示提示角標 */}
-          {!videoPlaying && (
-            <View style={styles.expandBadge} pointerEvents="none">
-              <Play size={12} color="white" />
-              <Text style={styles.expandText}>點擊播放</Text>
-            </View>
-          )}
         </View>
       );
     }
     return null;
   };
 
-  const handleAnswer = (userChoiceIsFake) => {
-    const isCorrect = userChoiceIsFake === currentQuestion.isFake;
-    const hasNextQuestion = currentIndex < myQuestions.length - 1;
-    navigation.navigate('Result', { isCorrect, questionInfo: currentQuestion, hasNext: hasNextQuestion });
-    if (hasNextQuestion) {
-      setCurrentIndex(currentIndex + 1);
-      setVideoPlaying(false); // 換題時重置播放狀態
-    }
-  };
-
-  const lightboxSrc = currentQuestion.type === 'image'
-    ? (typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl)
-    : null;
-
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topGlow} />
-
-      {/* 圖片放大 Modal */}
-      {lightboxVisible && lightboxSrc && (
+      {lightboxVisible && currentQuestion.mediaUrl && currentQuestion.type === 'image' && (
         <Modal transparent animationType="none" onRequestClose={closeLightbox}>
-          {/* 將 GestureHandlerRootView 與 GestureDetector 放到最外層，確保手勢完整接收 */}
           <GestureHandlerRootView style={{ flex: 1 }}>
             <GestureDetector gesture={composedGesture}>
               <Animated.View style={[styles.lightboxOverlay, { opacity: lightboxOpacity }]}>
-                
-                {/* 關閉按鈕 */}
                 <TouchableOpacity style={styles.lightboxClose} onPress={closeLightbox}>
                   <X color="white" size={22} strokeWidth={2} />
                 </TouchableOpacity>
-
-                {/* 圖片容器：不使用 pointerEvents 阻擋 */}
                 <View style={styles.lightboxTapArea}>
-                  <Animated.Image
-                    source={lightboxSrc}
-                    style={[
-                      styles.lightboxImage,
-                      {
-                        transform: [
-                          { scale: pinchScaleAnim }
-                        ]
-                      }
-                    ]}
-                    resizeMode="contain"
-                  />
+                  <Animated.Image source={currentQuestion.mediaUrl} style={[styles.lightboxImage, { transform: [{ scale: pinchScaleAnim }] }]} resizeMode="contain" />
                 </View>
-
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
         </Modal>
       )}
 
-      {/* 頂部導覽 */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <ChevronLeft color={colors.textSecondary} size={24} />
         </TouchableOpacity>
         <View style={styles.topCenter}>
-          <Text style={styles.topBarTitle}>第 {currentIndex + 1} 題</Text>
-          <Text style={styles.topBarSub}>共 {myQuestions.length} 題</Text>
+          <Text style={styles.topBarTitle}>真假消息挑戰賽</Text>
+          <Text style={styles.topBarSub}>第 {currentIndex + 1} / {questions.length} 題</Text>
         </View>
         <View style={{ width: 36 }} />
       </View>
 
-      {/* 進度條 */}
       <View style={styles.progressBg}>
         <Animated.View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
@@ -181,157 +187,137 @@ export default function QuizScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardTopLine} />
           <View style={styles.cardHeader}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{currentQuestion.username?.charAt(0) || '?'}</Text>
+            <View style={styles.tagBadge}>
+              <Text style={styles.tagText}>{currentQuestion.username || '不實訊息辨識'}</Text>
             </View>
-            <View>
-              <Text style={styles.username}>{currentQuestion.username}</Text>
-              <Text style={styles.userSub}>{currentQuestion.userSub}</Text>
-            </View>
+            {currentQuestion.userSub && <Text style={styles.userSubText}>({currentQuestion.userSub})</Text>}
           </View>
 
           {renderMedia()}
 
-          <Text style={[styles.postText, currentQuestion.type === 'text' && styles.textOnlyPost]}>
-            {currentQuestion.content}
+          {/* 🔑 文字過長排版緊湊化修復 */}
+          <Text style={[styles.scenarioText, currentQuestion.type === 'text' && styles.textOnlyStyle]}>
+            {currentQuestion.scenario || currentQuestion.content}
           </Text>
         </View>
 
-        <Text style={styles.hint}>這則訊息是真實的還是造假的？</Text>
+        {/* 🔑 修復提示按鈕點擊反應 */}
+        <TouchableOpacity style={[styles.hintToggleBox, showHint && styles.hintToggleBoxActive]} onPress={handleShowHint} activeOpacity={0.7}>
+          <Lightbulb size={16} color={showHint ? colors.amber : colors.textTertiary} />
+          <Text style={[styles.hintToggleText, showHint && { color: colors.amber }]}>
+            {showHint ? '事實查核大師線索已解鎖' : '點擊查看提示 (消耗 15 XP)'}
+          </Text>
+        </TouchableOpacity>
+
+        {showHint && currentQuestion.hint && (
+          <View style={styles.hintContentBox}>
+            <Text style={styles.hintContentText}>{currentQuestion.hint.text}</Text>
+          </View>
+        )}
+
+        <View style={styles.optionsContainer}>
+          {currentQuestion.options.map((option) => {
+            const isCurrentSelected = selectedOptionKey === option.key;
+            let cardStyle = styles.optionCard;
+            let textStyle = styles.optionText;
+
+            if (isAnswered) {
+              if (option.isCorrect) {
+                cardStyle = [styles.optionCard, styles.optionCorrectCard];
+                textStyle = [styles.optionText, styles.optionCorrectText];
+              } else if (isCurrentSelected && !option.isCorrect) {
+                cardStyle = [styles.optionCard, styles.optionWrongCard];
+                textStyle = [styles.optionText, styles.optionWrongText];
+              } else {
+                cardStyle = [styles.optionCard, { opacity: 0.4 }];
+              }
+            }
+
+            return (
+              <View key={option.key} style={{ marginBottom: 12 }}>
+                <TouchableOpacity style={cardStyle} onPress={() => handleOptionPress(option)} activeOpacity={0.8}>
+                  <Text style={textStyle}>{option.text}</Text>
+                </TouchableOpacity>
+
+                {isAnswered && (isCurrentSelected || option.isCorrect) && (
+                  <View style={[styles.feedbackBox, option.isCorrect ? styles.feedbackCorrectBox : styles.feedbackWrongBox]}>
+                    <Text style={styles.feedbackTitle}>{option.isCorrect ? '✅ 查核客觀事實：' : '❌ 思考操控盲區：'}</Text>
+                    <Text style={styles.feedbackContent}>{option.feedback}</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
+        {isAnswered && (
+          <View style={styles.explanationCard}>
+            <Text style={styles.explanationTitle}>👁️ 總體媒體識讀核心解析：</Text>
+            <Text style={styles.explanationContent}>{currentQuestion.explanation}</Text>
+          </View>
+        )}
       </ScrollView>
 
-      {/* 答題按鈕 */}
-      <View style={styles.footer}>
-        <Animated.View style={[{ flex: 1 }, { transform: [{ scale: trueScale }] }]}>
-          <TouchableOpacity style={[styles.choiceBtn, styles.choiceTrue]}
-            onPress={() => handleAnswer(false)} {...makeScaleHandler(trueScale)} activeOpacity={1}>
-            <Check color={colors.success} size={22} strokeWidth={2.5} />
-            <Text style={[styles.choiceTxt, { color: colors.success }]}>真實</Text>
+      {isAnswered && (
+        <View style={styles.bottomNavContainer}>
+          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+            <Text style={styles.nextBtnText}>
+              {currentIndex === questions.length - 1 ? '完成挑戰並解鎖大面板 ➔' : '前進下一題 ➔'}
+            </Text>
           </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.View style={[{ flex: 1 }, { transform: [{ scale: fakeScale }] }]}>
-          <TouchableOpacity style={[styles.choiceBtn, styles.choiceFake]}
-            onPress={() => handleAnswer(true)} {...makeScaleHandler(fakeScale)} activeOpacity={1}>
-            <X color={colors.danger} size={22} strokeWidth={2.5} />
-            <Text style={[styles.choiceTxt, { color: colors.danger }]}>造假</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  topGlow: {
-    position: 'absolute', top: -60, left: '50%', marginLeft: -100,
-    width: 200, height: 200, borderRadius: 100,
-    backgroundColor: 'rgba(37,99,235,0.07)',
-  },
-
-  // Lightbox
-  lightboxOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.93)',
-    zIndex: 999,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  lightboxTapArea: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lightboxImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.75,
-  },
-  lightboxClose: {
-    position: 'absolute', top: 56, right: 20, zIndex: 1000,
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center', alignItems: 'center',
-  },
-
-  topBar: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingTop: 10, paddingBottom: 12,
-    alignItems: 'center',
-  },
-  iconBtn: {
-    width: 36, height: 36, borderRadius: radius.sm,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: 10, paddingBottom: 12, alignItems: 'center' },
+  iconBtn: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center' },
   topCenter: { alignItems: 'center' },
-  topBarTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  topBarTitle: { fontSize: 14, fontWeight: '800', color: colors.textPrimary },
   topBarSub: { fontSize: 10, color: colors.textTertiary, marginTop: 1 },
-
-  progressBg: {
-    height: 3, backgroundColor: colors.border,
-    marginHorizontal: spacing.lg, borderRadius: radius.full, marginBottom: 16,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3, backgroundColor: colors.primary, borderRadius: radius.full,
-    shadowColor: colors.primary, shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8, shadowRadius: 6, elevation: 4,
-  },
-
-  scroll: { padding: spacing.lg, paddingBottom: spacing.md },
-  card: {
-    backgroundColor: colors.surface, borderRadius: radius.xl,
-    padding: spacing.lg, borderWidth: 1, borderColor: colors.border,
-    overflow: 'hidden',
-    ...shadow.md,
-  },
-  cardTopLine: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-    backgroundColor: colors.borderMid,
-  },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md, gap: 12 },
-  avatar: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.primaryBg,
-    borderWidth: 1, borderColor: colors.primaryBorder,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  avatarText: { fontSize: 15, fontWeight: '700', color: colors.primaryLight },
-  username: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  userSub: { fontSize: 11, color: colors.textTertiary, marginTop: 1 },
-
-  mediaWrapper: {
-    position: 'relative',
-    marginBottom: spacing.md,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-  },
-  media: {
-    width: '100%', height: 190,
-    backgroundColor: colors.surfaceElevated,
-  },
-  expandBadge: {
-    position: 'absolute', bottom: 8, right: 8,
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 9, paddingVertical: 5,
-    borderRadius: radius.full,
-  },
-  expandText: { fontSize: 10, color: 'white', fontWeight: '600' },
-
-  postText: { fontSize: 15, lineHeight: 26, color: colors.textSecondary },
-  textOnlyPost: { fontSize: 16, lineHeight: 28, color: colors.textPrimary, fontWeight: '500', paddingVertical: 8 },
-
-  hint: { textAlign: 'center', fontSize: 13, color: colors.textTertiary, fontWeight: '500', marginTop: 14, marginBottom: 4 },
-
-  footer: { flexDirection: 'row', paddingHorizontal: spacing.lg, paddingBottom: 28, paddingTop: 10, gap: 12 },
-  choiceBtn: {
-    paddingVertical: 18, borderRadius: radius.lg,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8,
-    borderWidth: 1.5,
-  },
-  choiceTrue: { backgroundColor: colors.successBg, borderColor: colors.successBorder, ...shadow.success },
-  choiceFake: { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder, ...shadow.danger },
-  choiceTxt: { fontSize: 17, fontWeight: '800', letterSpacing: 0.3 },
+  progressBg: { height: 3, backgroundColor: colors.border, marginHorizontal: spacing.lg, borderRadius: radius.full, marginBottom: 12, overflow: 'hidden' },
+  progressFill: { height: 3, backgroundColor: colors.primary, borderRadius: radius.full },
+  scroll: { padding: spacing.lg, paddingBottom: 100 },
+  card: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.sm },
+  cardTopLine: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: colors.borderMid },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, gap: 8 },
+  tagBadge: { backgroundColor: 'rgba(37,99,235,0.08)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.sm, borderWidth: 0.5, borderColor: colors.primaryBorder },
+  tagText: { fontSize: 11, color: colors.primaryLight, fontWeight: '700' },
+  userSubText: { fontSize: 11, color: colors.textTertiary, fontWeight: '500' },
+  mediaWrapper: { position: 'relative', marginBottom: spacing.sm, borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  media: { width: '100%', height: 150, backgroundColor: '#000000' },
+  expandBadge: { position: 'absolute', bottom: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.full },
+  expandText: { fontSize: 9, color: 'white', fontWeight: '600' },
+  scenarioText: { fontSize: 13, lineHeight: 22, color: colors.textSecondary },
+  textOnlyStyle: { fontSize: 14, fontWeight: '500', color: colors.textPrimary },
+  hintToggleBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingVertical: 10, borderRadius: radius.md, marginTop: 12, borderStyle: 'dashed' },
+  hintToggleBoxActive: { borderColor: colors.amber, backgroundColor: 'rgba(244,162,97,0.03)' },
+  hintToggleText: { fontSize: 11, color: colors.textTertiary, fontWeight: '600' },
+  hintContentBox: { marginTop: 8, backgroundColor: 'rgba(244,162,97,0.05)', padding: 12, borderRadius: radius.md, borderWidth: 0.5, borderColor: colors.amber },
+  hintContentText: { fontSize: 12, color: '#F4A261', lineHeight: 20 },
+  optionsContainer: { marginTop: 16 },
+  optionCard: { backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.border, padding: 12, borderRadius: radius.lg, ...shadow.sm },
+  optionText: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
+  optionCorrectCard: { borderColor: colors.success, backgroundColor: colors.successBg },
+  optionCorrectText: { color: colors.success, fontWeight: '700' },
+  optionWrongCard: { borderColor: colors.danger, backgroundColor: colors.dangerBg },
+  optionWrongText: { color: colors.danger, fontWeight: '700' },
+  feedbackBox: { marginTop: 6, padding: 10, borderRadius: radius.md, borderWidth: 1 },
+  feedbackCorrectBox: { backgroundColor: 'rgba(42,157,143,0.04)', borderColor: 'rgba(42,157,143,0.15)' },
+  feedbackWrongBox: { backgroundColor: 'rgba(231,111,81,0.04)', borderColor: 'rgba(231,111,81,0.15)' },
+  feedbackTitle: { fontSize: 11, fontWeight: 'bold', marginBottom: 2 },
+  feedbackContent: { fontSize: 11, color: colors.textSecondary, lineHeight: 16 },
+  explanationCard: { marginTop: 16, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, padding: 14, borderRadius: radius.xl },
+  explanationTitle: { fontSize: 13, fontWeight: '700', color: colors.primary },
+  explanationContent: { fontSize: 12, color: colors.textSecondary, lineHeight: 18, marginTop: 4 },
+  bottomNavContainer: { paddingHorizontal: spacing.lg, paddingBottom: 24, paddingTop: 10 },
+  nextBtn: { backgroundColor: colors.primary, paddingVertical: 16, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
+  nextBtnText: { color: 'white', fontSize: 15, fontWeight: '700' },
+  lightboxOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 999, justifyContent: 'center', alignItems: 'center' },
+  lightboxTapArea: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, justifyContent: 'center', alignItems: 'center' },
+  lightboxImage: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT * 0.75 },
+  lightboxClose: { position: 'absolute', top: 56, right: 20, zIndex: 1000, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' }
 });

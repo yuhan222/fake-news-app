@@ -1,10 +1,14 @@
-import { BarChart2, ChevronRight, Leaf, Sprout, TreeDeciduous, Trophy, Zap } from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
+// screens/HomeScreen.js
+import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useQuizContext } from '../QuizContext';
+import { BarChart2, ChevronRight, Leaf, Sprout, TreeDeciduous, Trophy, Zap, ShieldCheck } from 'lucide-react-native';
+import { useQuizContext } from '../QuizContext'; // 引入全域狀態大腦
 import { colors, radius, shadow, spacing } from '../theme';
 
 export default function HomeScreen({ navigation }) {
+  // --- 1. 從全域大腦中提取真實的持久化養成進度與歷史紀錄 ---
+  const { history, xp, level } = useQuizContext();
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -13,29 +17,53 @@ export default function HomeScreen({ navigation }) {
   const btn2Scale = useRef(new Animated.Value(1)).current;
   const btn3Scale = useRef(new Animated.Value(1)).current;
 
-  const { history } = useQuizContext();
   const accuracy = history.totalQuestions === 0
     ? 0
     : Math.round((history.correctAnswers / history.totalQuestions) * 100);
 
+  // --- 2. 🔑 核心成果接軌：將植物養成階段與全域真實段位（level）進行完美融合綁定 ---
   let plantConfig = {
     icon: Sprout,
-    color: colors.success,
-    glowColor: 'rgba(16,185,129,0.2)',
-    borderColor: colors.successBorder,
-    bgColor: colors.successBg,
-    stage: '種子期',
-    text: '快去挑戰，給我澆水吧！',
+    color: colors.textTertiary,
+    borderColor: colors.border,
+    bgColor: colors.surface,
+    stage: '種子發芽期',
+    text: `當前經驗值 ${xp} XP。快去挑戰，幫我的防詐大樹澆水吧！`,
   };
-  if (history.totalQuestions > 0) {
-    if (accuracy >= 80) {
-      plantConfig = { icon: TreeDeciduous, color: '#34D399', glowColor: 'rgba(52,211,153,0.2)', borderColor: 'rgba(52,211,153,0.3)', bgColor: 'rgba(52,211,153,0.1)', stage: '大樹期', text: `正確率 ${accuracy}%，已是防詐高手！` };
-    } else if (accuracy >= 50) {
-      plantConfig = { icon: Leaf, color: colors.success, glowColor: 'rgba(16,185,129,0.2)', borderColor: colors.successBorder, bgColor: colors.successBg, stage: '成長期', text: `正確率 ${accuracy}%，繼續加油！` };
-    } else {
-      plantConfig = { icon: Sprout, color: '#6EE7B7', glowColor: 'rgba(110,231,183,0.15)', borderColor: 'rgba(110,231,183,0.25)', bgColor: 'rgba(110,231,183,0.08)', stage: '發芽期', text: `正確率 ${accuracy}%，先去學習補強！` };
+
+  // 根據 AsyncStorage 中加載出來的真實全域段位調整植物型態與文字資訊
+  if (level === '事實查核專家') {
+    plantConfig = { 
+      icon: TreeDeciduous, 
+      color: '#34D399', 
+      borderColor: 'rgba(52,211,153,0.3)', 
+      bgColor: 'rgba(52,211,153,0.1)', 
+      stage: '事實查核專家 (神木期)', 
+      text: `達最高階 ${xp} XP！您已長成抗詐神木，具備頂級媒體免疫力！` 
+    };
+  } else if (level === '新手偵探') {
+    plantConfig = { 
+      icon: Leaf, 
+      color: colors.success, 
+      borderColor: colors.successBorder, 
+      bgColor: colors.successBg, 
+      stage: '新手偵探 (抽葉期)', 
+      text: `已累積 ${xp} XP！查核嫩芽已抽葉成長，請繼續保持警覺！` 
+    };
+  } else {
+    // 網路小白階段
+    if (history.totalQuestions > 0) {
+      plantConfig = { 
+        icon: Sprout, 
+        color: '#6EE7B7', 
+        borderColor: 'rgba(110,231,183,0.25)', 
+        bgColor: 'rgba(110,231,183,0.08)', 
+        stage: '網路小白 (萌芽期)', 
+        text: `累積 ${xp} XP。查核正確率 ${accuracy}%，建議多到學習模式補強！` 
+      };
     }
   }
+
   const PlantIcon = plantConfig.icon;
 
   const makeScaleHandler = (anim) => ({
@@ -49,6 +77,8 @@ export default function HomeScreen({ navigation }) {
       Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 45, useNativeDriver: true }),
       Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
     ]).start();
+    
+    // 植物上下漂浮動畫
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, { toValue: -10, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
@@ -64,7 +94,7 @@ export default function HomeScreen({ navigation }) {
 
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-        {/* Hero */}
+        {/* 🏆 植物養成 Hero 區塊 */}
         <View style={styles.hero}>
           <Animated.View style={[
             styles.plantRing,
@@ -78,8 +108,9 @@ export default function HomeScreen({ navigation }) {
             <PlantIcon color={plantConfig.color} size={46} strokeWidth={1.8} />
           </Animated.View>
 
+          {/* 稱號與證章 */}
           <View style={[styles.stagePill, { borderColor: plantConfig.borderColor }]}>
-            <View style={[styles.stageDot, { backgroundColor: plantConfig.color }]} />
+            <ShieldCheck size={12} color={plantConfig.color} style={{ marginRight: 2 }} />
             <Text style={[styles.stageText, { color: plantConfig.color }]}>{plantConfig.stage}</Text>
           </View>
 
@@ -88,19 +119,19 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* 標題 */}
+        {/* 大標題 */}
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>真假辨別訓練</Text>
-          <Text style={styles.title}>真假之眼 </Text>
-          <Text style={styles.subtitle}>你能看穿社群中的謊言嗎？</Text>
+          <Text style={styles.eyebrow}>AI 情境防詐訓練中樞</Text>
+          <Text style={styles.title}>真假之眼</Text>
+          <Text style={styles.subtitle}>你能看穿社群媒體中的高混淆謊言嗎？</Text>
         </View>
 
-        {/* 統計列 */}
+        {/* 數據看板列：只在有歷史紀錄時浮現 */}
         {history.totalQuestions > 0 && (
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statNum}>{history.totalQuestions}</Text>
-              <Text style={styles.statLabel}>已答題數</Text>
+              <Text style={styles.statLabel}>總答題數</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
@@ -110,17 +141,17 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={[styles.statNum, { color: accuracy >= 60 ? colors.primaryLight : colors.danger }]}>{accuracy}%</Text>
-              <Text style={styles.statLabel}>正確率</Text>
+              <Text style={styles.statLabel}>綜合正確率</Text>
             </View>
           </View>
         )}
 
-        {/* 按鈕 */}
+        {/* 🗺️ 主導航選單按鈕清單 */}
         <View style={styles.menu}>
           <Animated.View style={{ transform: [{ scale: btn1Scale }] }}>
             <TouchableOpacity style={styles.btnPrimary} onPress={() => navigation.navigate('Quiz')} {...makeScaleHandler(btn1Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><Trophy size={19} color="white" /><Text style={styles.btnTextPrimary}>開始挑戰</Text></View>
+                <View style={styles.btnLeft}><Trophy size={19} color="white" /><Text style={styles.btnTextPrimary}>開始隨機限時挑戰</Text></View>
                 <ChevronRight size={17} color="rgba(255,255,255,0.4)" />
               </View>
             </TouchableOpacity>
@@ -129,7 +160,7 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{ transform: [{ scale: btn2Scale }] }}>
             <TouchableOpacity style={styles.btnSecondary} onPress={() => navigation.navigate('Learning')} {...makeScaleHandler(btn2Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><Zap size={19} color={colors.primaryLight} /><Text style={styles.btnTextSecondary}>學習模式</Text></View>
+                <View style={styles.btnLeft}><Zap size={19} color={colors.primaryLight} /><Text style={styles.btnTextSecondary}>特徵圈選自主學習</Text></View>
                 <ChevronRight size={17} color={colors.primaryBorder} />
               </View>
             </TouchableOpacity>
@@ -138,7 +169,7 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{ transform: [{ scale: btn3Scale }] }}>
             <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.navigate('History')} {...makeScaleHandler(btn3Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><BarChart2 size={19} color={colors.textTertiary} /><Text style={styles.btnTextGhost}>我的紀錄</Text></View>
+                <View style={styles.btnLeft}><BarChart2 size={19} color={colors.textTertiary} /><Text style={styles.btnTextGhost}>我的數據足跡中心</Text></View>
                 <ChevronRight size={17} color={colors.textTertiary} />
               </View>
             </TouchableOpacity>
@@ -159,7 +190,7 @@ const styles = StyleSheet.create({
   },
   inner: { flex: 1, paddingHorizontal: spacing.lg },
 
-  hero: { alignItems: 'center', paddingTop: spacing.xl, paddingBottom: spacing.lg },
+  hero: { alignItems: 'center', paddingTop: spacing.md, paddingBottom: spacing.sm },
   plantRing: {
     width: 104, height: 104, borderRadius: 52,
     justifyContent: 'center', alignItems: 'center',
@@ -174,7 +205,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.full, borderWidth: 1,
     marginBottom: spacing.sm,
   },
-  stageDot: { width: 5, height: 5, borderRadius: 3 },
   stageText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   speechBubble: {
     backgroundColor: colors.surfaceElevated,
@@ -184,10 +214,10 @@ const styles = StyleSheet.create({
   },
   speechText: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', fontWeight: '500', lineHeight: 18 },
 
-  header: { paddingBottom: spacing.md },
+  header: { paddingBottom: spacing.sm },
   eyebrow: { fontSize: 11, fontWeight: '700', color: colors.primaryLight, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 },
-  title: { fontSize: 34, fontWeight: '900', color: colors.textPrimary, letterSpacing: -0.5, marginBottom: 7 },
-  subtitle: { fontSize: 14, color: colors.textSecondary, fontWeight: '400' },
+  title: { fontSize: 32, fontWeight: '900', color: colors.textPrimary, letterSpacing: -0.5, marginBottom: 6 },
+  subtitle: { fontSize: 13, color: colors.textSecondary, fontWeight: '400' },
 
   statsRow: {
     flexDirection: 'row', backgroundColor: colors.surface,
@@ -200,7 +230,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, color: colors.textTertiary, fontWeight: '600' },
   statDivider: { width: 1, backgroundColor: colors.border },
 
-  menu: { gap: spacing.sm, paddingBottom: spacing.xl },
+  menu: { gap: spacing.sm, paddingBottom: spacing.md },
   btnPrimary: {
     backgroundColor: colors.primaryDark, borderRadius: radius.lg,
     paddingVertical: 18, paddingHorizontal: spacing.lg,
