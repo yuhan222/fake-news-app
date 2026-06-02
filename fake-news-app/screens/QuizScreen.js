@@ -125,14 +125,23 @@ export default function QuizScreen({ navigation }) {
   const composedGesture = Gesture.Simultaneous(pinchGesture, tapGesture);
   const progress = (currentIndex + 1) / questions.length;
 
-  // 🔑 欄位修復：精準對接 questions_db.json 的 mediaUrl 欄位進行圖片/影片動態展示
   const renderMedia = () => {
     if (!currentQuestion.mediaUrl) return null;
     
+    // 🔑 1. 統一在最上方先檢查這個 mediaUrl 字串有沒有在我們的本地對應表中
+    const isLocalFile = localVideoAssets[currentQuestion.mediaUrl];
+    
+    // 🔑 2. 處理圖片區塊
     if (currentQuestion.type === 'image') {
+      // 如果在對應表內找到，就用對應表的 require；找不到（例如是網路 http 網址），就走原本的 uri 邏輯
+      const imageSource = isLocalFile 
+        ? isLocalFile 
+        : (typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl);
+
       return (
         <TouchableOpacity onPress={openLightbox} activeOpacity={0.92} style={styles.mediaWrapper}>
-          <Image source={currentQuestion.mediaUrl} style={styles.media} resizeMode="contain" />
+          {/* 🔑 這裡的 source 要改成我們處理好的 imageSource */}
+          <Image source={imageSource} style={styles.media} resizeMode="contain" />
           <View style={styles.expandBadge}>
             <Maximize2 size={12} color="white" />
             <Text style={styles.expandText}>點擊放大</Text>
@@ -140,9 +149,9 @@ export default function QuizScreen({ navigation }) {
         </TouchableOpacity>
       );
     }
+    
+    // 🔑 3. 處理影片區塊
     if (currentQuestion.type === 'video') {
-      const isLocalFile = localVideoAssets[currentQuestion.mediaUrl];
-  
       const videoSource = isLocalFile 
         ? isLocalFile 
         : (typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl);
@@ -156,7 +165,7 @@ export default function QuizScreen({ navigation }) {
             useNativeControls
             resizeMode={ResizeMode.CONTAIN}
             onPlaybackStatusUpdate={(status) => { if (status.isLoaded) setVideoPlaying(status.isPlaying); }}
-            onError={(error) => console.log('🔴 影片播放發生錯誤囉:', error)}
+            onError={(error) => console.log('🔴 影片播放發生錯誤:', error)}
           />
         </View>
       );

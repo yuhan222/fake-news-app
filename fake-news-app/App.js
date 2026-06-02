@@ -57,7 +57,6 @@ export default function App() {
     );
   }
 
-  // 📱 【手機端 Expo Go / 原生實機渲染】：直接 100% 滿版全螢幕，給使用者最純粹的 App 體驗
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />
@@ -67,7 +66,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  // 電腦端網頁背景（使用專案主視覺深藍色）
   webDesktopBackground: {
     flex: 1,
     backgroundColor: '#0B132B',
