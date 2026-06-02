@@ -81,7 +81,7 @@ export default function HomeScreen({ navigation }) {
         Animated.timing(floatAnim, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     ).start();
-  }, []); // 🔑 修正點 1：原本這裡下方多出一個 } 導致函式被提前切斷
+  }, []); 
 
   return (
     <SafeAreaView style={styles.container}>
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingVertical: 16, paddingHorizontal: spacing.lg,
   },
-  btnInner: { flexDirection: 'row', alignItems: 'center', justifyContext: 'space-between' },
+  btnInner:{ flexDirection: 'row', alignItems: 'center', justifyContext: 'space-between' },
   btnLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   btnTextPrimary: { fontSize: 16, fontWeight: '700', color: 'white' },
   btnTextSecondary: { fontSize: 16, fontWeight: '700', color: colors.primaryLight },

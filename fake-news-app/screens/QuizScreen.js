@@ -6,9 +6,16 @@ import { ResizeMode, Video } from 'expo-av';
 import { ChevronLeft, Maximize2, X, Lightbulb, Play } from 'lucide-react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
-import { useVideoPlayer, VideoView } from 'expo-video';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const localVideoAssets = {
+  'assets/n.jpg': require('./assets/n.jpg'),
+  'assets/ai 144256.mp4': require('./assets/ai 144256.mp4'),
+  'assets/AI炸薯條.mp4': require('./assets/AI炸薯條.mp4'), 
+  'assets/153_1.jpg': require('./assets/153_1.jpg'), 
+  'assets/4102-2.png': require('./assets/4102-2.png'),
+  'assets/8ca4.jpg': require('./assets/8ca4.jpg')
+};
 
 export default function QuizScreen({ navigation }) {
   const { getShuffledQuestions, useHintDeduct, saveChallengeSession, xp } = useQuizContext();
@@ -134,15 +141,22 @@ export default function QuizScreen({ navigation }) {
       );
     }
     if (currentQuestion.type === 'video') {
+      const isLocalFile = localVideoAssets[currentQuestion.mediaUrl];
+  
+      const videoSource = isLocalFile 
+        ? isLocalFile 
+        : (typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl);
+
       return (
         <View style={styles.mediaWrapper}>
           <Video
             ref={videoRef}
             style={styles.media}
-            source={typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl}
+            source={videoSource} 
             useNativeControls
             resizeMode={ResizeMode.CONTAIN}
             onPlaybackStatusUpdate={(status) => { if (status.isLoaded) setVideoPlaying(status.isPlaying); }}
+            onError={(error) => console.log('🔴 影片播放發生錯誤囉:', error)}
           />
         </View>
       );
