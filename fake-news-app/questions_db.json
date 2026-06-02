@@ -400,7 +400,7 @@
         "title": "唱歌讓植物長出金屬光澤謠言",
         "scenario": "網路上流傳一幅帶有奇怪植物的圖片並寫著：「震驚！研究發現每天對著植物唱歌，植物會長出金屬光澤，專家建議立即嘗試！」我們該如何看待這張圖片？",
         "content": "震驚！研究發現每天對著植物唱歌，植物會長出金屬光澤，專家建議立即嘗試！",
-        "mediaUrl": "require('./assets/n.jpg')",
+        "mediaUrl": "require('../assets/n.jpg')",
         "tags": [ "來源不明", "內容離譜", "偽科學" ],
         "isFake": true,
         "hint": {
@@ -444,7 +444,7 @@
         "title": "知名人物發言視訊辨識",
         "scenario": "在社群平台上看到一段政商知名人物的最新發言影片，嘴唇邊緣似乎出現不自然的像素模糊、閃爍與發音延遲，這可能遭遇了什麼？",
         "content": "請觀察這段知名人物的發言影片，嘴唇邊緣是否出現不自然的模糊與延遲？",
-        "mediaUrl": "require('./assets/ai 144256.mp4')",
+        "mediaUrl": "require('../assets/ai 144256.mp4')",
         "tags": [ "AI深偽", "嘴型不符", "畫質異常" ],
         "isFake": true,
         "hint": {
@@ -488,7 +488,7 @@
         "title": "生吃青蔥導致A型肝炎假警告",
         "scenario": "長輩群組瘋傳圖文：「A型肝炎禍首竟然是青蔥？怪不得宜蘭人3成以上有肝病。美國食物管理局 (FDA) 網站上公佈了警告，最好不要生吃。」下列查核事實何者正確？",
         "content": "A型肝炎禍首竟然是青蔥？怪不得宜蘭人3成以上有肝病。…美國食物管理局 (FDA – U.S. Food and Drug Administration)  網站上所公佈的警告。關於青蔥，最好不要生吃。",
-        "mediaUrl": "require('./assets/153_1.jpg')",
+        "mediaUrl": "require('../assets/153_1.jpg')",
         "tags": [ "來源不明", "內容離譜", "偽科學" ],
         "isFake": true,
         "hint": {
@@ -532,7 +532,7 @@
         "title": "美軍F-15飛官遭遇超自然現象假內幕",
         "scenario:": "社群流傳文字宣稱：「美軍F-15戰鬥機飛行員萊恩·米切爾在伊朗南部被擊中彈射逃生，發生突破敵方防禦的超自然現象。」關於此時事訊息的查核盲區是？",
         "content": "4月3日伊朗宣布擊落一架美軍F-15戰機；美國表示，兩名機組員各自彈射逃生...發生突破敵方的防禦點等超自然現象。",
-        "mediaUrl": "require('./assets/4102-2.png')",
+        "mediaUrl": "require('../assets/4102-2.png')",
         "tags": [ "來源不明", "內容離譜" ],
         "isFake": true,
         "hint": {
@@ -576,7 +576,7 @@
         "title": "北極圈測得史上最高溫38度國際新聞",
         "scenario": "新聞報導：「北極圈西伯利亞測得史上最高溫紀錄38度高溫，極端高溫正加速海冰融化。未來北極夏季可能沒有海冰。」關於這則新聞的識讀判定是？",
         "content": "北極圈出現史上最高溫紀錄38度高溫，同一天我們查一下紀錄，台北最高溫也才36.2度，高緯度的北極，居然比台北還要熱！專家警告，未來北極夏季可能沒有海冰。",
-        "mediaUrl": "require('./assets/8ca4.jpg')",
+        "mediaUrl": "require('../assets/8ca4.jpg')",
         "tags": [ "國際新聞", "科學證實" ],
         "isFake": false,
         "hint": {
@@ -617,7 +617,7 @@
         "type": "video",
         "username": "Threads影片",
         "scenario": "此用戶在Threads上發布了將膠囊丟入油鍋中，便產生薯條的影片，並加上標題說：「難怪現代人怪病這麼多😭」，請問你對此影片的理解是？",
-        "mediaUrl": "require('./assets/AI炸薯條.mp4')",
+        "mediaUrl": "require('../assets/AI炸薯條.mp4')",
         "tags": [ "AI影片"],
         "isFake": true,
         "hint": {

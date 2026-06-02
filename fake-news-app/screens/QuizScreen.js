@@ -9,12 +9,12 @@ import { colors, radius, shadow, spacing } from '../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const localVideoAssets = {
-  'assets/n.jpg': require('./assets/n.jpg'),
-  'assets/ai 144256.mp4': require('./assets/ai 144256.mp4'),
-  'assets/AI炸薯條.mp4': require('./assets/AI炸薯條.mp4'), 
-  'assets/153_1.jpg': require('./assets/153_1.jpg'), 
-  'assets/4102-2.png': require('./assets/4102-2.png'),
-  'assets/8ca4.jpg': require('./assets/8ca4.jpg')
+  'assets/n.jpg': require('../assets/n.jpg'),
+  'assets/ai 144256.mp4': require('../assets/ai 144256.mp4'),
+  'assets/AI炸薯條.mp4': require('../assets/AI炸薯條.mp4'), 
+  'assets/153_1.jpg': require('../assets/153_1.jpg'), 
+  'assets/4102-2.png': require('../assets/4102-2.png'),
+  'assets/8ca4.jpg': require('../assets/8ca4.jpg')
 };
 
 export default function QuizScreen({ navigation }) {
