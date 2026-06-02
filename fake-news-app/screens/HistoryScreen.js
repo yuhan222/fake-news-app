@@ -67,7 +67,7 @@ export default function HistoryScreen({ navigation }) {
           {/* 🔑 核心修正：將原本卡死編譯的 <div> 標籤替換為 React Native 的 <View> */}
           <View style={{ flex: 1 }}>
             <Text style={styles.badgeLabel}>目前反假訊息段位</Text>
-            <Text style={[styles.badgeTitle, { color: badgeStyle.color }]}>{level}</Text>
+            <Text style={[styles.badgeTitle, { color: '#FFF' }]}>{level}</Text>
           </View>
           <View style={styles.xpBadge}>
             <Text style={styles.xpBadgeText}>{xp} XP</Text>
@@ -142,7 +142,7 @@ export default function HistoryScreen({ navigation }) {
         {/* 📝 歷次挑戰足跡紀錄清單 */}
         <View style={styles.section}>
           <View style={styles.cardTopLine} />
-          <Text style={styles.sectionTitle}>挑戰歷史足跡 (手機本地備份)</Text>
+          <Text style={styles.sectionTitle}>挑戰歷史足跡</Text>
           <View style={{ marginTop: 12 }}>
             {history.records && history.records.length > 0 ? (
               history.records.map((item, index) => (
@@ -203,9 +203,8 @@ const styles = StyleSheet.create({
     padding: 18, borderRadius: radius.lg, borderWidth: 1,
     overflow: 'hidden', ...shadow.sm,
   },
-  badgeLabel: { fontSize: 11, color: colors.textTertiary, fontWeight: '600', marginBottom: 2 },
-  badgeTitle: { fontSize: 19, fontWeight: '800' },
-  // 🔑 核心修正：將原本非法的 bg 縮寫屬性修正為 React Native 標準的 backgroundColor
+  badgeLabel: { fontSize: 11, color: '#FFF', fontWeight: '600', marginBottom: 2 },
+  badgeTitle: { fontSize: 19, fontWeight: '800'},
   xpBadge: { backgroundColor: 'rgba(0,180,216,0.12)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.md, borderWidth: 1, borderColor: colors.primaryBorder },
   xpBadgeText: { color: colors.primaryLight, fontWeight: 'bold', fontSize: 14 },
 

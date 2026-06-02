@@ -6,6 +6,7 @@ import { ResizeMode, Video } from 'expo-av';
 import { ChevronLeft, Maximize2, X, Lightbulb, Play } from 'lucide-react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 

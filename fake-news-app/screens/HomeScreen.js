@@ -1,8 +1,7 @@
-// screens/HomeScreen.js
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'; // 🔑 確保補上 ScrollView 引入
 import { BarChart2, ChevronRight, Leaf, Sprout, TreeDeciduous, Trophy, Zap, ShieldCheck } from 'lucide-react-native';
-import { useQuizContext } from '../QuizContext'; // 引入全域狀態大腦
+import { useQuizContext } from '../QuizContext'; 
 import { colors, radius, shadow, spacing } from '../theme';
 
 export default function HomeScreen({ navigation }) {
@@ -21,7 +20,7 @@ export default function HomeScreen({ navigation }) {
     ? 0
     : Math.round((history.correctAnswers / history.totalQuestions) * 100);
 
-  // --- 2. 🔑 核心成果接軌：將植物養成階段與全域真實段位（level）進行完美融合綁定 ---
+  // --- 2. 將植物養成階段與全域真實段位（level）進行融合綁定 ---
   let plantConfig = {
     icon: Sprout,
     color: colors.textTertiary,
@@ -31,7 +30,6 @@ export default function HomeScreen({ navigation }) {
     text: `當前經驗值 ${xp} XP。快去挑戰，幫我的防詐大樹澆水吧！`,
   };
 
-  // 根據 AsyncStorage 中加載出來的真實全域段位調整植物型態與文字資訊
   if (level === '事實查核專家') {
     plantConfig = { 
       icon: TreeDeciduous, 
@@ -51,7 +49,6 @@ export default function HomeScreen({ navigation }) {
       text: `已累積 ${xp} XP！查核嫩芽已抽葉成長，請繼續保持警覺！` 
     };
   } else {
-    // 網路小白階段
     if (history.totalQuestions > 0) {
       plantConfig = { 
         icon: Sprout, 
@@ -78,55 +75,29 @@ export default function HomeScreen({ navigation }) {
       Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
     ]).start();
     
-    // 植物上下漂浮動畫
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, { toValue: -10, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
         Animated.timing(floatAnim, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     ).start();
-  }, []);
+  }, []); // 🔑 修正點 1：原本這裡下方多出一個 } 導致函式被提前切斷
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 頂部裝飾光暈 */}
       <View style={styles.topGlow} />
 
-      <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-
-        {/* 🏆 植物養成 Hero 區塊 */}
-        <View style={styles.hero}>
-          <Animated.View style={[
-            styles.plantRing,
-            {
-              backgroundColor: plantConfig.bgColor,
-              borderColor: plantConfig.borderColor,
-              shadowColor: plantConfig.color,
-              transform: [{ translateY: floatAnim }, { scale: scaleAnim }],
-            }
-          ]}>
-            <PlantIcon color={plantConfig.color} size={46} strokeWidth={1.8} />
-          </Animated.View>
-
-          {/* 稱號與證章 */}
-          <View style={[styles.stagePill, { borderColor: plantConfig.borderColor }]}>
-            <ShieldCheck size={12} color={plantConfig.color} style={{ marginRight: 2 }} />
-            <Text style={[styles.stageText, { color: plantConfig.color }]}>{plantConfig.stage}</Text>
-          </View>
-
-          <View style={styles.speechBubble}>
-            <Text style={styles.speechText}>{plantConfig.text}</Text>
-          </View>
-        </View>
-
-        {/* 大標題 */}
+      <ScrollView 
+        contentContainerStyle={[styles.scrollContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 🏷️ 大標題 */}
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>AI 情境防詐訓練中樞</Text>
           <Text style={styles.title}>真假之眼</Text>
-          <Text style={styles.subtitle}>你能看穿社群媒體中的高混淆謊言嗎？</Text>
+          <Text style={styles.subtitle}>眼前所見，並非真實</Text>
         </View>
 
-        {/* 數據看板列：只在有歷史紀錄時浮現 */}
+        {/* 📊 數據看板列 */}
         {history.totalQuestions > 0 && (
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -151,7 +122,7 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{ transform: [{ scale: btn1Scale }] }}>
             <TouchableOpacity style={styles.btnPrimary} onPress={() => navigation.navigate('Quiz')} {...makeScaleHandler(btn1Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><Trophy size={19} color="white" /><Text style={styles.btnTextPrimary}>開始隨機限時挑戰</Text></View>
+                <View style={styles.btnLeft}><Trophy size={19} color="white" /><Text style={styles.btnTextPrimary}>開始挑戰</Text></View>
                 <ChevronRight size={17} color="rgba(255,255,255,0.4)" />
               </View>
             </TouchableOpacity>
@@ -160,7 +131,7 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{ transform: [{ scale: btn2Scale }] }}>
             <TouchableOpacity style={styles.btnSecondary} onPress={() => navigation.navigate('Learning')} {...makeScaleHandler(btn2Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><Zap size={19} color={colors.primaryLight} /><Text style={styles.btnTextSecondary}>特徵圈選自主學習</Text></View>
+                <View style={styles.btnLeft}><Zap size={19} color={colors.primaryLight} /><Text style={styles.btnTextSecondary}>自主學習</Text></View>
                 <ChevronRight size={17} color={colors.primaryBorder} />
               </View>
             </TouchableOpacity>
@@ -169,52 +140,54 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{ transform: [{ scale: btn3Scale }] }}>
             <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.navigate('History')} {...makeScaleHandler(btn3Scale)} activeOpacity={1}>
               <View style={styles.btnInner}>
-                <View style={styles.btnLeft}><BarChart2 size={19} color={colors.textTertiary} /><Text style={styles.btnTextGhost}>我的數據足跡中心</Text></View>
+                <View style={styles.btnLeft}><BarChart2 size={19} color={colors.textTertiary} /><Text style={styles.btnTextGhost}>數據足跡中心</Text></View>
                 <ChevronRight size={17} color={colors.textTertiary} />
               </View>
             </TouchableOpacity>
           </Animated.View>
         </View>
 
-      </Animated.View>
+        {/* 🌱 植物養成 Hero 區塊 */}
+        <View style={styles.hero}>
+          <Animated.View style={[
+            styles.plantRing,
+            {
+              backgroundColor: plantConfig.bgColor,
+              borderColor: plantConfig.borderColor,
+              shadowColor: plantConfig.color,
+              transform: [{ translateY: floatAnim }, { scale: scaleAnim }],
+            }
+          ]}>
+            <PlantIcon color={plantConfig.color} size={46} strokeWidth={1.8} />
+          </Animated.View>
+
+          <View style={[styles.stagePill, { borderColor: plantConfig.borderColor }]}>
+            <ShieldCheck size={12} color={plantConfig.color} style={{ marginRight: 2 }} />
+            <Text style={[styles.stageText, { color: plantConfig.color }]}>{plantConfig.stage}</Text>
+          </View>
+
+          <View style={styles.speechBubble}>
+            <Text style={styles.speechText}>{plantConfig.text}</Text>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  scrollContainer: { 
+    paddingHorizontal: spacing.lg, 
+    paddingTop: spacing.lg, 
+    paddingBottom: spacing.xl 
+  },
   topGlow: {
     position: 'absolute', top: -80, left: '50%', marginLeft: -150,
     width: 300, height: 300, borderRadius: 150,
     backgroundColor: 'rgba(37,99,235,0.08)',
   },
-  inner: { flex: 1, paddingHorizontal: spacing.lg },
-
-  hero: { alignItems: 'center', paddingTop: spacing.md, paddingBottom: spacing.sm },
-  plantRing: {
-    width: 104, height: 104, borderRadius: 52,
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1.5, marginBottom: spacing.sm,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1, shadowRadius: 24, elevation: 10,
-  },
-  stagePill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: radius.full, borderWidth: 1,
-    marginBottom: spacing.sm,
-  },
-  stageText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
-  speechBubble: {
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: spacing.md, paddingVertical: 9,
-    borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
-    maxWidth: 240,
-  },
-  speechText: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', fontWeight: '500', lineHeight: 18 },
-
-  header: { paddingBottom: spacing.sm },
+  header: { paddingBottom: spacing.sm, alignItems: 'center' },
   eyebrow: { fontSize: 11, fontWeight: '700', color: colors.primaryLight, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 },
   title: { fontSize: 32, fontWeight: '900', color: colors.textPrimary, letterSpacing: -0.5, marginBottom: 6 },
   subtitle: { fontSize: 13, color: colors.textSecondary, fontWeight: '400' },
@@ -235,21 +208,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryDark, borderRadius: radius.lg,
     paddingVertical: 18, paddingHorizontal: spacing.lg,
     borderWidth: 1, borderColor: colors.primaryBorder,
-    ...shadow.primary,
   },
   btnSecondary: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
     paddingVertical: 18, paddingHorizontal: spacing.lg,
     borderWidth: 1, borderColor: colors.primaryBorder,
-    ...shadow.sm,
   },
   btnGhost: {
     borderRadius: radius.lg,
     paddingVertical: 16, paddingHorizontal: spacing.lg,
   },
-  btnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  btnInner: { flexDirection: 'row', alignItems: 'center', justifyContext: 'space-between' },
   btnLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   btnTextPrimary: { fontSize: 16, fontWeight: '700', color: 'white' },
   btnTextSecondary: { fontSize: 16, fontWeight: '700', color: colors.primaryLight },
   btnTextGhost: { fontSize: 16, fontWeight: '600', color: colors.textTertiary },
+  
+  hero: { alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.md },
+  plantRing: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 12, ...shadow.sm },
+  stagePill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.full, borderWidth: 1, marginBottom: 10 },
+  stageText: { fontSize: 11, fontWeight: '700' },
+  speechBubble: { backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, maxWidth: '85%' },
+  speechText: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 18 }
 });
