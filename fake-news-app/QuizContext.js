@@ -7,7 +7,7 @@ import rawQuestions from './questions_db.json';
 const QuizContext = createContext();
 
 export const QuizProvider = ({ children }) => {
-  const [xp, setXp] = useState(0); 
+  const [xp, setXp] = useState(30); 
   const [level, setLevel] = useState('識讀實習生'); // 🔑 稱號名詞全面媒體識讀專業化
   const [isLoading, setIsLoading] = useState(true);
 

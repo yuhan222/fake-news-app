@@ -98,24 +98,31 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* 📊 數據看板列 */}
-        {history.totalQuestions > 0 && (
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNum}>{history.totalQuestions}</Text>
-              <Text style={styles.statLabel}>總答題數</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statNum, { color: colors.success }]}>{history.correctAnswers}</Text>
-              <Text style={styles.statLabel}>答對題數</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statNum, { color: accuracy >= 60 ? colors.primaryLight : colors.danger }]}>{accuracy}%</Text>
-              <Text style={styles.statLabel}>綜合正確率</Text>
-            </View>
+        <View style={styles.statsRow}>
+  
+          {/* 總答題數區塊 */}
+          <View style={styles.statItem}>
+            <Text style={styles.statNum}>{history?.totalQuestions || 0}</Text>
+            <Text style={styles.statLabel}>總答題數</Text>
           </View>
-        )}
+          
+        <View style={styles.statDivider} />
+
+          {/* 答對題數區塊 */}
+          <View style={styles.statItem}>
+            <Text style={[styles.statNum, { color: colors.success }]}>{history.correctAnswers}</Text>
+            <Text style={styles.statLabel}>答對題數</Text>
+          </View>
+          
+          {/* 正確率區塊 */}
+          <View style={styles.statItem}>
+            {/* 這裡你原本就寫好了判定：如果總題數是 0 正確率就是 0% */}
+            <Text style={styles.statNum}>{accuracy}%</Text>
+            <Text style={styles.statLabel}>正確率</Text>
+          </View>
+
+          {/* 如果你還有放第三個統計（例如：連續登入或等級），也可以依此類推 */}
+        </View>
 
         {/* 🗺️ 主導航選單按鈕清單 */}
         <View style={styles.menu}>
