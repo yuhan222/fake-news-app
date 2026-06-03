@@ -1,9 +1,9 @@
 // screens/QuizScreen.js
-import React, { useRef, useState, useEffect } from 'react';
-import { Animated, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { ResizeMode, Video } from 'expo-av';
+import { ChevronLeft, Lightbulb, Maximize2, X } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ResizeMode, Video } from 'expo-av'; 
-import { ChevronLeft, Maximize2, X, Lightbulb, Play } from 'lucide-react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 
@@ -184,7 +184,7 @@ export default function QuizScreen({ navigation }) {
                   <X color="white" size={22} strokeWidth={2} />
                 </TouchableOpacity>
                 <View style={styles.lightboxTapArea}>
-                  <Animated.Image source={currentQuestion.mediaUrl} style={[styles.lightboxImage, { transform: [{ scale: pinchScaleAnim }] }]} resizeMode="contain" />
+                  <Animated.Image source={localVideoAssets[currentQuestion.mediaUrl] || { uri: currentQuestion.mediaUrl }} style={[styles.lightboxImage, { transform: [{ scale: pinchScaleAnim }] }]} resizeMode="contain" />
                 </View>
               </Animated.View>
             </GestureDetector>
@@ -204,7 +204,8 @@ export default function QuizScreen({ navigation }) {
       </View>
 
       <View style={styles.progressBg}>
-        <Animated.View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        // ✅ 改成這樣
+        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'; // 🔑 確保補上 ScrollView 引入
-import { BarChart2, ChevronRight, Leaf, Sprout, TreeDeciduous, Trophy, Zap, ShieldCheck } from 'lucide-react-native';
-import { useQuizContext } from '../QuizContext'; 
+import { BarChart2, ChevronRight, Leaf, ShieldCheck, Sprout, TreeDeciduous, Trophy, Zap } from 'lucide-react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // 🔑 確保補上 ScrollView 引入
+import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 
 export default function HomeScreen({ navigation }) {
@@ -87,10 +87,11 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.topGlow} />
 
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
         {/* 🏷️ 大標題 */}
         <View style={styles.header}>
           <Text style={styles.title}>真假之眼</Text>
@@ -178,6 +179,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
