@@ -23,7 +23,7 @@ export default function App() {
   const MainAppContent = () => (
     <QuizProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Learning" component={LearningScreen} />
           <Stack.Screen name="Quiz" component={QuizScreen} />
@@ -58,7 +58,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, touchAction: 'pan-y' }}>
       <StatusBar barStyle="dark-content" />
       <MainAppContent />
     </GestureHandlerRootView>

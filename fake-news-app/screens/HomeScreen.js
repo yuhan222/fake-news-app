@@ -1,6 +1,6 @@
 import { BarChart2, ChevronRight, Leaf, ShieldCheck, Sprout, TreeDeciduous, Trophy, Zap } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // 🔑 確保補上 ScrollView 引入
+import { ScrollView, Animated, Easing, SafeAreaView,  StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // 🔑 確保補上 ScrollView 引入
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 

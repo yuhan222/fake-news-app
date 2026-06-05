@@ -1,6 +1,6 @@
 // screens/LearningScreen.js
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, SafeAreaView,  TouchableOpacity } from 'react-native';
 import { ChevronLeft, BookOpen, AlertTriangle, Eye, Award } from 'lucide-react-native';
 import { colors, radius, shadow, spacing } from '../theme';
 

@@ -1,6 +1,6 @@
 // screens/ResultScreen.js
 import React, { useEffect, useRef } from 'react';
-import { Animated, SafeAreaView, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Animated, SafeAreaView,  Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AlertCircle, CheckCircle, Ghost, Share2, Tag, Trophy, TrendingUp } from 'lucide-react-native';
 import { useQuizContext } from '../QuizContext'; // 引入全域狀態大腦
 import { colors, radius, shadow, spacing } from '../theme';

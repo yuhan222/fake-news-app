@@ -1,17 +1,16 @@
 // screens/QuizScreen.js
-import { ResizeMode, Video } from 'expo-av';
+import VideoBox from './VideoBox';
 import { ChevronLeft, Lightbulb, Maximize2, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ScrollView, Alert, Animated, Dimensions, Image, Modal, SafeAreaView,  StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const localVideoAssets = {
   'assets/n.jpg': require('../assets/n.jpg'),
-  'assets/ai 144256.mp4': require('../assets/ai 144256.mp4'),
-  'assets/AI炸薯條.mp4': require('../assets/AI炸薯條.mp4'), 
+  'assets/ai_144256.mp4': require('../assets/ai_144256.mp4'),
+  'assets/ai_fries.mp4': require('../assets/ai_fries.mp4'), 
   'assets/153_1.jpg': require('../assets/153_1.jpg'), 
   'assets/4102-2.png': require('../assets/4102-2.png'),
   'assets/8ca4.jpg': require('../assets/8ca4.jpg')
@@ -39,10 +38,6 @@ export default function QuizScreen({ navigation }) {
   const currentQuestion = questions[currentIndex];
   const videoRef = useRef(null);
   const lightboxOpacity = useRef(new Animated.Value(0)).current;
-
-  const pinchScaleAnim = useRef(new Animated.Value(1)).current;
-  const lastScale = useRef(1);
-  const currentPinchScale = useRef(1);
 
   if (!currentQuestion) {
     return (
@@ -104,9 +99,6 @@ export default function QuizScreen({ navigation }) {
   };
 
   const openLightbox = () => {
-    pinchScaleAnim.setValue(1);
-    lastScale.current = 1;
-    currentPinchScale.current = 1;
     setLightboxVisible(true);
     Animated.timing(lightboxOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
   };
@@ -115,14 +107,6 @@ export default function QuizScreen({ navigation }) {
     Animated.timing(lightboxOpacity, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => { setLightboxVisible(false); });
   };
 
-  const pinchGesture = Gesture.Pinch().onUpdate((e) => {
-    const newScale = Math.max(1, Math.min(5, lastScale.current * e.scale));
-    currentPinchScale.current = newScale;
-    pinchScaleAnim.setValue(newScale);
-  }).onEnd(() => { lastScale.current = currentPinchScale.current; });
-
-  const tapGesture = Gesture.Tap().onEnd(() => { if (lastScale.current <= 1.05) closeLightbox(); });
-  const composedGesture = Gesture.Simultaneous(pinchGesture, tapGesture);
   const progress = (currentIndex + 1) / questions.length;
 
   const renderMedia = () => {
@@ -150,23 +134,15 @@ export default function QuizScreen({ navigation }) {
       );
     }
     
-    // 🔑 3. 處理影片區塊
+    // 🔑 3. 處理影片區塊（網頁與手機由 VideoBox 各自用最穩定的方式播放）
     if (currentQuestion.type === 'video') {
-      const videoSource = isLocalFile 
-        ? isLocalFile 
+      const videoSource = isLocalFile
+        ? isLocalFile
         : (typeof currentQuestion.mediaUrl === 'string' ? { uri: currentQuestion.mediaUrl } : currentQuestion.mediaUrl);
 
       return (
         <View style={styles.mediaWrapper}>
-          <Video
-            ref={videoRef}
-            style={styles.media}
-            source={videoSource} 
-            useNativeControls
-            resizeMode={ResizeMode.CONTAIN}
-            onPlaybackStatusUpdate={(status) => { if (status.isLoaded) setVideoPlaying(status.isPlaying); }}
-            onError={(error) => console.log('🔴 影片播放發生錯誤:', error)}
-          />
+          <VideoBox source={videoSource} style={styles.media} />
         </View>
       );
     }
@@ -176,19 +152,15 @@ export default function QuizScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       {lightboxVisible && currentQuestion.mediaUrl && currentQuestion.type === 'image' && (
-        <Modal transparent animationType="none" onRequestClose={closeLightbox}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <GestureDetector gesture={composedGesture}>
-              <Animated.View style={[styles.lightboxOverlay, { opacity: lightboxOpacity }]}>
-                <TouchableOpacity style={styles.lightboxClose} onPress={closeLightbox}>
-                  <X color="white" size={22} strokeWidth={2} />
-                </TouchableOpacity>
-                <View style={styles.lightboxTapArea}>
-                  <Animated.Image source={localVideoAssets[currentQuestion.mediaUrl] || { uri: currentQuestion.mediaUrl }} style={[styles.lightboxImage, { transform: [{ scale: pinchScaleAnim }] }]} resizeMode="contain" />
-                </View>
-              </Animated.View>
-            </GestureDetector>
-          </GestureHandlerRootView>
+        <Modal transparent animationType="fade" onRequestClose={closeLightbox}>
+          <Animated.View style={[styles.lightboxOverlay, { opacity: lightboxOpacity }]}>
+            <TouchableOpacity style={styles.lightboxClose} onPress={closeLightbox}>
+              <X color="white" size={22} strokeWidth={2} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.lightboxTapArea} activeOpacity={1} onPress={closeLightbox}>
+              <Image source={localVideoAssets[currentQuestion.mediaUrl] || { uri: currentQuestion.mediaUrl }} style={styles.lightboxImage} resizeMode="contain" />
+            </TouchableOpacity>
+          </Animated.View>
         </Modal>
       )}
 

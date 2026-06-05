@@ -1,6 +1,6 @@
 // screens/HistoryScreen.js
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ScrollView, SafeAreaView,  StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { BarChart2, ChevronLeft, RotateCcw, ShieldCheck, Target, Calendar } from 'lucide-react-native';
 import { useQuizContext } from '../QuizContext'; // 引入全域狀態大腦
 import { colors, radius, shadow, spacing } from '../theme';

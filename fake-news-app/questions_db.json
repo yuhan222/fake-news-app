@@ -444,7 +444,7 @@
     "title": "藍牙「不費電」說法真假判斷",
     "scenario": "這段由 AI 生成畫面輔助的科普影片聲稱：「手機藍牙開著是不費電的事兒，為了方便連接不需要關閉。」影片同時也提到藍牙存在「很多攻擊手段」。請問這段影片的說法正確嗎？",
     "content": "請觀看這段關於藍牙技術的 AI 科普影片，判斷其中「藍牙開著不費電」的核心主張是否正確。",
-    "mediaUrl": "assets/ai 144256.mp4",
+    "mediaUrl": "assets/ai_144256.mp4",
     "tags": ["AI生成內容", "藍牙資安", "錯誤資訊"],
     "isFake": true,
     "hint": {
@@ -617,7 +617,7 @@
         "type": "video",
         "username": "Threads影片",
         "scenario": "此用戶在Threads上發布了將膠囊丟入油鍋中，便產生薯條的影片，並加上標題說：「難怪現代人怪病這麼多😭」，請問你對此影片的理解是？",
-        "mediaUrl": "assets/AI炸薯條.mp4",
+        "mediaUrl": "assets/ai_fries.mp4",
         "tags": [ "AI影片"],
         "isFake": true,
         "hint": {
