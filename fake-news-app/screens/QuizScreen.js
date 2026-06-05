@@ -13,7 +13,8 @@ const localVideoAssets = {
   'assets/ai_fries.mp4': require('../assets/ai_fries.mp4'), 
   'assets/153_1.jpg': require('../assets/153_1.jpg'), 
   'assets/4102-2.png': require('../assets/4102-2.png'),
-  'assets/8ca4.jpg': require('../assets/8ca4.jpg')
+  'assets/8ca4.jpg': require('../assets/8ca4.jpg'),
+  'assets/Screenshot 2026-06-06 011405.png': require('../assets/Screenshot 2026-06-06 011405.png')
 };
 
 export default function QuizScreen({ navigation }) {
@@ -253,17 +254,17 @@ export default function QuizScreen({ navigation }) {
             <Text style={styles.explanationContent}>{currentQuestion.explanation}</Text>
           </View>
         )}
-      </ScrollView>
 
-      {isAnswered && (
-        <View style={styles.bottomNavContainer}>
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-            <Text style={styles.nextBtnText}>
-              {currentIndex === questions.length - 1 ? '完成挑戰並解鎖大面板 ➔' : '前進下一題 ➔'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        {isAnswered && (
+          <View style={styles.inlineBottomNav}>
+            <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+              <Text style={styles.nextBtnText}>
+                {currentIndex === questions.length - 1 ? '完成挑戰並解鎖大面板 ➔' : '前進下一題 ➔'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   explanationCard: { marginTop: 16, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, padding: 14, borderRadius: radius.xl },
   explanationTitle: { fontSize: 13, fontWeight: '700', color: colors.primary },
   explanationContent: { fontSize: 12, color: colors.textSecondary, lineHeight: 18, marginTop: 4 },
-  bottomNavContainer: { paddingHorizontal: spacing.lg, paddingBottom: 24, paddingTop: 10 },
+  inlineBottomNav: { marginTop: 20, paddingBottom: 40},
   nextBtn: { backgroundColor: colors.primary, paddingVertical: 16, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
   nextBtnText: { color: 'white', fontSize: 15, fontWeight: '700' },
   lightboxOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 999, justifyContent: 'center', alignItems: 'center' },

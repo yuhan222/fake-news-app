@@ -58,7 +58,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, touchAction: 'pan-y' }}>
+    <GestureHandlerRootView style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-y' } : { flex: 1 }}>
       <StatusBar barStyle="dark-content" />
       <MainAppContent />
     </GestureHandlerRootView>
