@@ -181,7 +181,7 @@ export default function QuizScreen({ navigation }) {
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <View style={styles.cardTopLine} />
           <View style={styles.cardHeader}>
@@ -271,6 +271,7 @@ export default function QuizScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  scrollView: { flex: 1 },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: 10, paddingBottom: 12, alignItems: 'center' },
   iconBtn: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center' },
   topCenter: { alignItems: 'center' },
