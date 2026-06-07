@@ -2,7 +2,7 @@
 import VideoBox from './VideoBox';
 import { ChevronLeft, Lightbulb, Maximize2, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Alert, Animated, Dimensions, Image, Modal, SafeAreaView,  StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Alert, Animated, Dimensions, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
 
@@ -270,7 +270,7 @@ export default function QuizScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.background, ...Platform.select({web: { height: '100%', overflow: 'hidden' }}) },
   scrollView: { flex: 1 },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: 10, paddingBottom: 12, alignItems: 'center' },
   iconBtn: { width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center' },

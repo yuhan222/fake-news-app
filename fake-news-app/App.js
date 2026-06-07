@@ -19,18 +19,24 @@ export default function App() {
   // 💻 判斷當前環境：如果是電腦網頁瀏覽器 (Web) 且寬度大於 500px，則自動啟動「虛擬手機模式」
   const isWebDesktop = Platform.OS === 'web' && WINDOW_WIDTH > 500;
 
-  // 📦 將原本完整的導航與資料中樞邏輯抽離成獨立的內部元件，確保手機與網頁端讀取同一套系統
   const MainAppContent = () => (
     <QuizProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false }}>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Learning" component={LearningScreen} />
-          <Stack.Screen name="Quiz" component={QuizScreen} />
-          <Stack.Screen name="Result" component={ResultScreen} />
-          <Stack.Screen name="History" component={HistoryScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <View style={{ flex: 1, height: '100%', width: '100%' }}>
+        <NavigationContainer>
+          <Stack.Navigator 
+            screenOptions={{ 
+              headerShown: false, 
+              gestureEnabled: false,
+              cardStyle: { flex: 1, height: '100%' } }}
+          >
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Learning" component={LearningScreen} />
+            <Stack.Screen name="Quiz" component={QuizScreen} />
+            <Stack.Screen name="Result" component={ResultScreen} />
+            <Stack.Screen name="History" component={HistoryScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </View>
     </QuizProvider>
   );
 
