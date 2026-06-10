@@ -1,10 +1,10 @@
 // screens/QuizScreen.js
-import VideoBox from './VideoBox';
 import { ChevronLeft, Lightbulb, Maximize2, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Alert, Animated, Dimensions, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Alert, Animated, Dimensions, Image, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useQuizContext } from '../QuizContext';
 import { colors, radius, shadow, spacing } from '../theme';
+import VideoBox from './VideoBox';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const localVideoAssets = {
@@ -49,15 +49,33 @@ export default function QuizScreen({ navigation }) {
   }
 
   // 🔑 提示點擊事件功能完全綁定修復
-  const handleShowHint = () => {
+   const handleShowHint = () => {
     if (showHint) return;
+
+    // 點數不足
     if (xp < 15) {
-      Alert.alert('查核點數不足', `觀看提示需要扣除 15 XP，您當前只有 ${xp} XP。`);
+      const msg = `觀看提示需要扣除 15 XP，您當前只有 ${xp} XP。`;
+      if (Platform.OS === 'web') {
+        window.alert(msg);
+      } else {
+        Alert.alert('查核點數不足', msg);
+      }
       return;
     }
+
+    // 確認扣點
+    if (Platform.OS === 'web') {
+      const ok = window.confirm('觀看提示將扣除 15 XP 經驗值，確定要開啟嗎？');
+      if (ok) {
+        useHintDeduct(15);
+        setShowHint(true);
+      }
+      return;
+    }
+
     Alert.alert('解鎖事實查核線索', '觀看提示將扣除 15 XP 經驗值，確定要開啟嗎？', [
       { text: '取消', style: 'cancel' },
-      { text: '確定扣點', onPress: () => { useHintDeduct(15); setShowHint(true); } }
+      { text: '確定扣點', onPress: () => { useHintDeduct(15); setShowHint(true); } },
     ]);
   };
 
